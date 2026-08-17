@@ -61,3 +61,6 @@ naming. Always invoke `/commit` to generate commits.
 A pre-tool-use Bash hook (`validate-bash-dotnet.sh`) blocks destructive
 commands (`rm`, SQL deletes, `sudo`) and warns on `git push`/`reset`/`rebase`.
 Do not bypass it.
+
+## Official LIBBPF documentation link 
+https://elixir.bootlin.com/linux/v6.18.6/source/tools/lib/bpf/libbpf.h
