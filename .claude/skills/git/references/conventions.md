@@ -4,40 +4,40 @@
 
 ```
 Is it a bug fix?
-  └─ YES → FIX🔧
+  └─ YES → FIX
 
 Is it related to performance only?
   └─ YES → PERF
 
 Is it a completely new feature that didn't exist before?
-  └─ YES → FEAT🚀
+  └─ YES → FEAT
 
 Is it a new element INSIDE an existing feature?
-  └─ YES → NEW🚀
+  └─ YES → NEW
 
 Is it an improvement or addition to something that already exists?
-  └─ YES → UPDATE🚀
+  └─ YES → UPDATE
 
 Is it moving/renaming files or folders only?
-  └─ YES → STRUCT📁
+  └─ YES → STRUCT
 
 Is it code cleanup with no behavior change?
-  └─ YES → REFACTOR♻️
+  └─ YES → REFACTOR
 
 Is it formatting only (spaces, indentation)?
-  └─ YES → STYLE🎨
+  └─ YES → STYLE
 
 Is it tests only?
-  └─ YES → TEST✅
+  └─ YES → TEST
 
 Is it docs only?
-  └─ YES → DOCS📚
+  └─ YES → DOCS
 
 Is it tooling, deps, CI config?
-  └─ YES → CHORE🧹
+  └─ YES → CHORE
 
 Is it a merge commit?
-  └─ YES → MERGE🔄
+  └─ YES → MERGE
 
 Is it undoing a previous commit?
   └─ YES → REVERT
@@ -64,7 +64,7 @@ Is it undoing a previous commit?
 ## Good examples
 
 ```
-FEAT🚀(auth): add user registration with email verification
+FEAT(auth): add user registration with email verification
 
 Implements full registration flow including email confirmation.
 Token expires after 24h and is single-use.
@@ -73,7 +73,7 @@ Closes #42
 ```
 
 ```
-FIX🔧(auth): correct display bug on login page
+FIX(auth): correct display bug on login page
 
 Error message was not showing when credentials were invalid
 due to missing null check on the response object.
@@ -82,7 +82,7 @@ Fixes #87
 ```
 
 ```
-UPDATE🚀(users): add pagination to user list endpoint
+UPDATE(users): add pagination to user list endpoint
 
 Adds limit/offset query parameters to GET /users.
 Default page size is 20, max is 100.
@@ -91,7 +91,7 @@ Refs #103
 ```
 
 ```
-NEW🚀(users): add avatar upload support
+NEW(users): add avatar upload support
 
 Introduces POST /users/{id}/avatar endpoint.
 Images are stored in Azure Blob Storage and served via CDN.
@@ -100,18 +100,18 @@ Closes #55
 ```
 
 ```
-REFACTOR♻️(users): optimize data sorting logic
+REFACTOR(users): optimize data sorting logic
 
 Replaces in-memory LINQ sort with server-side ORDER BY
 to reduce memory usage on large datasets.
 ```
 
 ```
-MERGE🔄(develop): merge feature/user-dashboard into develop
+MERGE(develop): merge feature/user-dashboard into develop
 ```
 
 ```
-STRUCT📁(api): reorganize controllers by domain
+STRUCT(api): reorganize controllers by domain
 
 Moves all user-related controllers into /Controllers/Users/
 and all auth-related into /Controllers/Auth/.
@@ -125,7 +125,6 @@ No logic changed.
 ```
 fix bug                          # No type, no scope, too vague
 FEAT: added stuff                # Past tense, no scope, no description
-🚀 new feature                   # Emoji without type
 feat(auth): Add JWT support.     # Lowercase type, period at end
 WIP                              # Never commit WIP to shared branches
 REFACTOR: changed some things    # Too vague, no scope
