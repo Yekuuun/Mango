@@ -15,8 +15,8 @@ internal static class NativeMethods
     * @return pointer to the new bpf_object; or NULL is returned on error,
     * error code is stored in errno
     */
-    [DllImport("libbpf")]
-    public static extern BpfObjectHandle bpf_object__open([MarshalAs(UnmanagedType.LPWStr)] string path);
+    [DllImport("libbpf", SetLastError = true)]
+    public static extern BpfObjectHandle bpf_object__open([MarshalAs(UnmanagedType.LPUTF8Str)] string path);
 
     /**
     * @brief **bpf_object__open_file()** creates a bpf_object by opening
@@ -28,8 +28,8 @@ internal static class NativeMethods
     * @return pointer to the new bpf_object; or NULL is returned on error,
     * error code is stored in errno
     */
-    [DllImport("libbpf")]
-    public static extern BpfObjectHandle bpf_object__open_file([MarshalAs(UnmanagedType.LPWStr)] string path, IntPtr opts);
+    [DllImport("libbpf", SetLastError = true)]
+    public static extern BpfObjectHandle bpf_object__open_file([MarshalAs(UnmanagedType.LPUTF8Str)] string path, IntPtr opts);
 
     /**
     * @brief **bpf_object__open_mem()** creates a bpf_object by reading
@@ -41,8 +41,8 @@ internal static class NativeMethods
     * @return pointer to the new bpf_object; or NULL is returned on error,
     * error code is stored in errno
     */
-    [DllImport("libbpf")]
-    public static extern BpfObjectHandle bpf_object__open_mem(IntPtr objBuf, [MarshalAs(UnmanagedType.SysInt)] int objBufSz, IntPtr opts); 
+    [DllImport("libbpf", SetLastError = true)]
+    public static extern BpfObjectHandle bpf_object__open_mem(IntPtr objBuf, [MarshalAs(UnmanagedType.SysInt)] int objBufSz, IntPtr opts);
 
     /**
     * @brief **bpf_object__prepare()** prepares BPF object for loading:
@@ -55,7 +55,7 @@ internal static class NativeMethods
     * @return 0, on success; negative error code, otherwise, error code is
     * stored in errno
     */
-    [DllImport("libbpf")]
+    [DllImport("libbpf", SetLastError = true)]
     public static extern int bpf_object__prepare(IntPtr obj);
 
     /**
@@ -65,10 +65,16 @@ internal static class NativeMethods
     * @return 0, on success; negative error code, otherwise, error code is
     * stored in errno
     */
-    [DllImport("libbpf")]
+    [DllImport("libbpf", SetLastError = true)]
     public static extern int bpf_object__load(IntPtr obj);
 
+    /**
+    * @brief **bpf_object__name()** retrieves the name of the BPF object.
+    * @param obj Pointer to a valid BPF object
+    * @return the object's name
+    */
     [DllImport("libbpf")]
+    [return: MarshalAs(UnmanagedType.LPUTF8Str)]
     public static extern string bpf_object__name(IntPtr obj);
 
     /**
@@ -84,8 +90,17 @@ internal static class NativeMethods
     #endregion
 
     #region PROGRAM
-    [DllImport("libbpf")]
-    public static extern BpfProgramHandle bpf_object__find_program_by_name(IntPtr obj, [MarshalAs(UnmanagedType.LPWStr)] string name);
+
+    /**
+    * @brief **bpf_object__find_program_by_name()** locates a BPF program by
+    * name within the object.
+    * @param obj Pointer to a valid BPF object
+    * @param name name of the BPF program
+    * @return BPF program instance, if such program exists within the BPF
+    * object; or NULL otherwise
+    */
+    [DllImport("libbpf", SetLastError = true)]
+    public static extern BpfProgramHandle bpf_object__find_program_by_name(IntPtr obj, [MarshalAs(UnmanagedType.LPUTF8Str)] string name);
 
     #endregion
 }
