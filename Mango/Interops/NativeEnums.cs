@@ -51,3 +51,48 @@ internal enum BpfProgType
     Syscall,
     Netfilter,
 }
+
+/// <summary>
+/// Mirrors the kernel's <c>enum bpf_map_type</c> (linux/bpf.h), including
+/// its deprecated/aliased members, so ordinal values stay in lockstep with
+/// what libbpf returns as a plain by-value C enum.
+/// </summary>
+internal enum BpfMapType
+{
+    Unspec,
+    Hash,
+    Array,
+    ProgArray,
+    PerfEventArray,
+    PercpuHash,
+    PercpuArray,
+    StackTrace,
+    CgroupArray,
+    LruHash,
+    LruPercpuHash,
+    LpmTrie,
+    ArrayOfMaps,
+    HashOfMaps,
+    Devmap,
+    Sockmap,
+    Cpumap,
+    Xskmap,
+    Sockhash,
+    CgroupStorageDeprecated,
+    CgroupStorage = CgroupStorageDeprecated,
+    ReuseportSockarray,
+    PercpuCgroupStorageDeprecated,
+    PercpuCgroupStorage = PercpuCgroupStorageDeprecated,
+    Queue,
+    Stack,
+    SkStorage,
+    DevmapHash,
+    StructOps,
+    Ringbuf,
+    InodeStorage,
+    TaskStorage,
+    BloomFilter,
+    UserRingbuf,
+    CgrpStorage,
+    Arena,
+}

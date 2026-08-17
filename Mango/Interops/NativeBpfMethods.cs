@@ -260,6 +260,17 @@ internal static class NativeMethods
     #region MAP
 
     /**
+    * @brief **bpf_object__find_map_by_name()** returns BPF map of the given
+    * name, if it exists within the passed BPF object.
+    * @param obj BPF object
+    * @param name name of the BPF map
+    * @return BPF map instance, if such map exists within the BPF object;
+    * or an invalid handle otherwise
+    */
+    [DllImport("libbpf")]
+    public static extern BpfMapHandle bpf_object__find_map_by_name(BpfObjectHandle obj, [MarshalAs(UnmanagedType.LPUTF8Str)] string name);
+
+    /**
     * @brief **bpf_object__next_map()** iterates over the maps
     * contained within the BPF object.
     * @param obj Pointer to a valid BPF object
@@ -271,7 +282,138 @@ internal static class NativeMethods
     [DllImport("libbpf")]
     public static extern BpfMapHandle bpf_object__next_map(BpfObjectHandle obj, IntPtr prev);
 
-    //TO DO => declare other functions (lookup/update/delete elem, pin, fd).
+    /**
+    * @brief **bpf_map__fd()** gets the file descriptor of the passed BPF map.
+    * @param map the BPF map instance
+    * @return the file descriptor; or -EINVAL in case of an error
+    */
+    [DllImport("libbpf")]
+    public static extern int bpf_map__fd(BpfMapHandle map);
+
+    /**
+    * @brief **bpf_map__name()** retrieves the name of the BPF map.
+    * @param map the BPF map instance
+    * @return the map's name
+    */
+    [DllImport("libbpf")]
+    [return: MarshalAs(UnmanagedType.LPUTF8Str)]
+    public static extern string bpf_map__name(BpfMapHandle map);
+
+    /**
+    * @brief **bpf_map__type()** retrieves the BPF map type.
+    * @param map the BPF map instance
+    * @return the map's `bpf_map_type`
+    */
+    [DllImport("libbpf")]
+    public static extern BpfMapType bpf_map__type(BpfMapHandle map);
+
+    /**
+    * @brief **bpf_map__key_size()** retrieves the configured key size, in
+    * bytes, of the BPF map.
+    * @param map the BPF map instance
+    */
+    [DllImport("libbpf")]
+    public static extern uint bpf_map__key_size(BpfMapHandle map);
+
+    /**
+    * @brief **bpf_map__value_size()** retrieves the configured value size,
+    * in bytes, of the BPF map.
+    * @param map the BPF map instance
+    */
+    [DllImport("libbpf")]
+    public static extern uint bpf_map__value_size(BpfMapHandle map);
+
+    /**
+    * @brief **bpf_map__max_entries()** retrieves the configured maximum
+    * number of entries of the BPF map.
+    * @param map the BPF map instance
+    */
+    [DllImport("libbpf")]
+    public static extern uint bpf_map__max_entries(BpfMapHandle map);
+
+    /**
+    * @brief **bpf_map__pin()** creates a file that serves as a 'pin' for
+    * the BPF map. This increments the reference count on the BPF map,
+    * keeping it loaded even after the userspace process which loaded it
+    * has exited.
+    * @param map the BPF map to pin
+    * @param path a file path for the pin; if null, the map's own pin_path
+    * attribute is used instead, and an error is returned if that is also unset
+    * @return 0, on success; negative error code, otherwise
+    */
+    [DllImport("libbpf")]
+    public static extern int bpf_map__pin(BpfMapHandle map, [MarshalAs(UnmanagedType.LPUTF8Str)] string? path);
+
+    /**
+    * @brief **bpf_map__unpin()** removes the file that serves as a 'pin'
+    * for the BPF map.
+    * @param map the BPF map to unpin
+    * @param path a file path for the pin; if null, the map's own pin_path
+    * attribute is unpinned instead
+    * @return 0, on success; negative error code, otherwise
+    */
+    [DllImport("libbpf")]
+    public static extern int bpf_map__unpin(BpfMapHandle map, [MarshalAs(UnmanagedType.LPUTF8Str)] string? path);
+
+    /**
+    * @brief **bpf_map__lookup_elem()** looks up the BPF map value
+    * corresponding to the provided key.
+    * @param map BPF map to look up the element in
+    * @param key bytes of the key used for lookup
+    * @param keySz size in bytes of key data, must match the map's key_size
+    * @param value buffer that receives the looked-up value's bytes
+    * @param valueSz size in bytes of the value buffer, must match the
+    * map's value_size (or, for per-CPU maps, that size rounded up to 8
+    * bytes and multiplied by the number of possible CPUs)
+    * @param flags extra flags passed to the kernel for this operation
+    * @return 0, on success; negative error code, otherwise
+    */
+    [DllImport("libbpf")]
+    public static extern int bpf_map__lookup_elem(BpfMapHandle map, ReadOnlySpan<byte> key, nuint keySz, Span<byte> value, nuint valueSz, ulong flags);
+
+    /**
+    * @brief **bpf_map__update_elem()** inserts or updates the BPF map
+    * value corresponding to the provided key.
+    * @param map BPF map to insert into or update
+    * @param key bytes of the key
+    * @param keySz size in bytes of key data, must match the map's key_size
+    * @param value bytes of the value
+    * @param valueSz size in bytes of the value data, must match the map's
+    * value_size (or, for per-CPU maps, that size rounded up to 8 bytes and
+    * multiplied by the number of possible CPUs)
+    * @param flags extra flags passed to the kernel for this operation
+    * @return 0, on success; negative error code, otherwise
+    */
+    [DllImport("libbpf")]
+    public static extern int bpf_map__update_elem(BpfMapHandle map, ReadOnlySpan<byte> key, nuint keySz, ReadOnlySpan<byte> value, nuint valueSz, ulong flags);
+
+    /**
+    * @brief **bpf_map__delete_elem()** deletes the BPF map element that
+    * corresponds to the provided key.
+    * @param map BPF map to delete the element from
+    * @param key bytes of the key
+    * @param keySz size in bytes of key data, must match the map's key_size
+    * @param flags extra flags passed to the kernel for this operation
+    * @return 0, on success; negative error code, otherwise
+    */
+    [DllImport("libbpf")]
+    public static extern int bpf_map__delete_elem(BpfMapHandle map, ReadOnlySpan<byte> key, nuint keySz, ulong flags);
+
+    /**
+    * @brief **bpf_map__get_next_key()** iterates BPF map keys by fetching
+    * the key that follows the current one.
+    * @param map BPF map to fetch the next key from
+    * @param curKey bytes of the current key, or an empty span to fetch the
+    * first key
+    * @param nextKey buffer that receives the next key's bytes
+    * @param keySz size in bytes of key data, must match the map's key_size
+    * @return 0, on success; -ENOENT if curKey was the last key in the map;
+    * negative error code, otherwise
+    */
+    [DllImport("libbpf")]
+    public static extern int bpf_map__get_next_key(BpfMapHandle map, ReadOnlySpan<byte> curKey, Span<byte> nextKey, nuint keySz);
+
+    //TO DO => declare other functions (lookup_and_delete_elem, is_pinned, exclusive_program).
 
     #endregion
 
