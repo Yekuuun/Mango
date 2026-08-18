@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Mango\Mango.csproj" />
+  </ItemGroup>
+
+  <!--
+    Builds the Ebpf/ probe and drops main.bpf.o next to this project's own
+    output, so Program.cs can locate it via AppContext.BaseDirectory
+    regardless of the working directory `dotnet run`/`dotnet build`/the IDE
+    launched from.
+  -->
+  <Target Name="BuildAndCopyEbpfProbe" AfterTargets="Build">
+    <Exec Command="make" WorkingDirectory="$(MSBuildProjectDirectory)/../Ebpf" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/../Ebpf/out/main.bpf.o" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
