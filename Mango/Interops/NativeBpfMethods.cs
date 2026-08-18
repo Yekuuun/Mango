@@ -417,6 +417,50 @@ internal static class NativeMethods
 
     #endregion
 
+    #region RINGBUF
+
+    /**
+    * @brief **ring_buffer__new()** creates a ring buffer manager for a
+    * single BPF_MAP_TYPE_RINGBUF map, invoking `sampleCb` for each record
+    * consumed during **ring_buffer__poll()**.
+    * @param mapFd file descriptor of the BPF_MAP_TYPE_RINGBUF map
+    * @param sampleCb callback invoked with each record; the caller must
+    * keep a reference to this delegate alive for as long as the returned
+    * ring buffer is in use, or the native function pointer goes dangling
+    * once the delegate is garbage collected
+    * @param ctx opaque pointer forwarded to `sampleCb` on every invocation
+    * @param opts ring buffer options; pass `IntPtr.Zero` for defaults
+    * @return reference to the new ring buffer manager; or an invalid handle
+    * is returned on error, error code is stored in errno
+    */
+    [DllImport("libbpf", SetLastError = true)]
+    public static extern BpfRingBufferHandle ring_buffer__new(int mapFd, RingBufferSampleFn sampleCb, IntPtr ctx, IntPtr opts);
+
+    /**
+    * @brief **ring_buffer__free()** destroys a ring buffer manager and
+    * releases all associated resources.
+    * @param rb pointer to a valid ring buffer manager
+    */
+    [DllImport("libbpf")]
+    public static extern void ring_buffer__free(IntPtr rb);
+
+    /**
+    * @brief **ring_buffer__poll()** polls every ring buffer registered
+    * with the manager for new records, invoking the associated callback
+    * for each one consumed, and blocks up to `timeoutMs` waiting for data.
+    * @param rb ring buffer manager to poll
+    * @param timeoutMs maximum time to wait for new data, in milliseconds;
+    * 0 to return immediately, -1 to block indefinitely
+    * @return the number of records consumed; or a negative error code if
+    * any callback returned an error
+    */
+    [DllImport("libbpf")]
+    public static extern int ring_buffer__poll(BpfRingBufferHandle rb, int timeoutMs);
+
+    //TO DO => declare other functions (add, consume, consume_n, epoll_fd, ring).
+
+    #endregion
+
     #region LOG
 
     /**

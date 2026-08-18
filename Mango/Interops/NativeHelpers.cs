@@ -12,3 +12,13 @@ namespace Mango.Interops;
 /// </summary>
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 internal delegate int LibbpfPrintFn(LibbpfPrintLevel level, IntPtr fmt, IntPtr args);
+
+/// <summary>
+/// Mirrors libbpf's <c>ring_buffer_sample_fn</c>. Invoked once per record
+/// consumed from a ring buffer; <paramref name="data"/>/<paramref name="size"/>
+/// point at kernel-owned memory that is only valid for the duration of the
+/// call. Return 0 to keep polling, or a negative value to stop
+/// <c>ring_buffer__poll()</c>/<c>ring_buffer__consume()</c> early.
+/// </summary>
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+internal delegate int RingBufferSampleFn(IntPtr ctx, IntPtr data, nuint size);
