@@ -207,7 +207,7 @@ internal static class NativeMethods
     * @return the program's `bpf_prog_type`
     */
     [DllImport("libbpf")]
-    public static extern BpfProgType bpf_program__type(BpfProgramHandle prog);
+    public static extern BpfProgramType bpf_program__type(BpfProgramHandle prog);
 
     /**
     * @brief **bpf_program__autoload()** reports whether the BPF program

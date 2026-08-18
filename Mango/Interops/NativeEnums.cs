@@ -13,9 +13,10 @@ internal enum LibbpfPrintLevel
 /// <summary>
 /// Mirrors the kernel's <c>enum bpf_prog_type</c> (linux/bpf.h). Ordinal
 /// values must stay in lockstep with the kernel header since libbpf
-/// returns this as a plain C enum (int-sized) by value.
+/// returns this as a plain C enum (int-sized) by value. Public since it's
+/// also the type of <c>BpfProgram.Type</c> in the public API.
 /// </summary>
-internal enum BpfProgType
+public enum BpfProgramType
 {
     Unspec,
     SocketFilter,
@@ -55,9 +56,10 @@ internal enum BpfProgType
 /// <summary>
 /// Mirrors the kernel's <c>enum bpf_map_type</c> (linux/bpf.h), including
 /// its deprecated/aliased members, so ordinal values stay in lockstep with
-/// what libbpf returns as a plain by-value C enum.
+/// what libbpf returns as a plain by-value C enum. Public since it's also
+/// the type of <c>BpfMap.Type</c> in the public API.
 /// </summary>
-internal enum BpfMapType
+public enum BpfMapType
 {
     Unspec,
     Hash,

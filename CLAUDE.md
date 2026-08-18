@@ -9,12 +9,51 @@ eBPF object/program loading through P/Invoke. The project targets **net10.0**.
 
 ```
 Mango/
-├── Interops/             # Raw P/Invoke bindings (NativeMethods) onto libbpf
-├── Handles/               # SafeHandle wrappers for native BPF resources
-│   ├── BpfObjectHandle.cs # Owns and releases a bpf_object (bpf_object__close)
-│   └── BpfProgramHandle.cs
+├── Interops/                # Raw P/Invoke bindings (NativeMethods) onto libbpf
+│   ├── NativeBpfMethods.cs  # [DllImport] extern declarations, grouped by #region
+│   ├── NativeEnums.cs       # Enums mirroring kernel enums (bpf_prog_type, bpf_map_type, ...)
+│   └── NativeHelpers.cs     # Delegate types for native callbacks (libbpf_set_print)
+├── Handles/                 # SafeHandle wrappers for native BPF resources
+│   ├── BpfObjectHandle.cs   # Owns and releases a bpf_object (bpf_object__close)
+│   ├── BpfProgramHandle.cs  # Non-owning — lifetime belongs to its parent bpf_object
+│   ├── BpfMapHandle.cs      # Non-owning — lifetime belongs to its parent bpf_object
+│   └── BpfLinkHandle.cs     # Owns and releases a bpf_link (bpf_link__destroy)
+├── Models/                  # Result/error value types for the public API
+│   ├── BpfError.cs          # errno/return-code + libbpf_strerror() rendered as a value
+│   └── BpfResult.cs         # BpfResult<T> — Result<T, BpfError> for the public API
+├── BpfObject.cs              # Public API: Open/Prepare/Load/pin-unpin/Programs/Maps
+├── BpfProgram.cs              # Public API: wraps BpfProgramHandle (Type/Autoload/Attach)
+├── BpfMap.cs                   # Public API: wraps BpfMapHandle (CRUD/Keys/pin-unpin)
+├── BpfLink.cs                   # Public API: wraps BpfLinkHandle (IDisposable)
 └── Mango.csproj
 ```
+
+### Public API layer (M4)
+
+- The public surface (`BpfObject`, `BpfProgram`, `BpfMap`, `BpfLink`) lives at
+  the project root, in the `Mango` namespace — not under `Handles/` or
+  `Interops/`, which stay internal plumbing.
+- `BpfError`/`BpfResult<T>` live under `Models/`, in the `Mango.Models`
+  namespace — the shared result/error vocabulary the public API returns.
+- `BpfProgramType`/`BpfMapType` (mirroring the kernel's `bpf_prog_type`/
+  `bpf_map_type`) are **public enums declared in `Interops/NativeEnums.cs`**,
+  colocated with the native signatures they mirror, rather than duplicated
+  as separate public-layer types — one definition avoids ordinal drift
+  between an internal and a public copy.
+- Error handling follows the native call's own shape rather than one
+  uniform rule:
+  - Int-returning calls (0/negative-error-code) → `BpfError.FromCode(rc)`
+    used to build a `BpfResult<T>` — the negative code doesn't depend on
+    `errno`/`SetLastError` timing.
+  - Pointer/handle-returning calls with `SetLastError = true` and no
+    other numeric signal (`bpf_object__open`, `bpf_program__attach`) →
+    `BpfError.FromLastError()` (reads `Marshal.GetLastPInvokeError()`).
+  - Map element CRUD (`bpf_map__lookup/update/delete_elem`) exposes
+    `Try*(...) : bool` instead of `BpfResult<T>` — "not found" is a normal
+    outcome there, matching the `Dictionary.TryGetValue` idiom.
+  - `Autoload`'s setter throws `InvalidOperationException` on failure
+    instead of returning a result — failing to set autoload on a valid
+    handle is a programmer error, not an expected outcome.
 
 ## Architecture rules
 
@@ -40,7 +79,8 @@ Mango/
   `[DllImport]` declarations live — no scattered P/Invoke elsewhere
 - `SafeHandle` subclasses are `internal sealed` and own their handle
   (`ownsHandle: true`) unless the native object is non-owning by design
-  (e.g. `BpfProgramHandle`, which is owned by its parent `bpf_object`)
+  (e.g. `BpfProgramHandle`/`BpfMapHandle`, both owned by their parent
+  `bpf_object`)
 
 ## Active skills
 
