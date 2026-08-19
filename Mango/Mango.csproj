@@ -10,7 +10,7 @@
   <PropertyGroup>
     <PackageId>Mango.Libbpf</PackageId>
     <!-- Overridden at pack time via -p:Version=$VERSION in the release workflow, off the pushed git tag. -->
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Authors>Yekuuun</Authors>
     <Description>A C# wrapper around the native libbpf library, exposing eBPF object/program/map loading through P/Invoke.</Description>
     <PackageTags>ebpf;bpf;libbpf;linux;pinvoke</PackageTags>
