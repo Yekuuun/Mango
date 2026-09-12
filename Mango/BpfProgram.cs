@@ -14,7 +14,7 @@ public sealed class BpfProgram
 
     internal BpfProgram(BpfProgramHandle handle) => _handle = handle;
 
-    public string Name => NativeMethods.bpf_program__name(_handle);
+    public string Name => NativeString.FromBorrowedPtr(NativeMethods.bpf_program__name(_handle));
 
     public int Fd => NativeMethods.bpf_program__fd(_handle);
 

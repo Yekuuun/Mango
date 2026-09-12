@@ -42,7 +42,7 @@ internal static class NativeMethods
     * error code is stored in errno
     */
     [DllImport("libbpf", SetLastError = true)]
-    public static extern BpfObjectHandle bpf_object__open_mem(IntPtr objBuf, [MarshalAs(UnmanagedType.SysInt)] int objBufSz, IntPtr opts);
+    public static extern BpfObjectHandle bpf_object__open_mem(IntPtr objBuf, nuint objBufSz, IntPtr opts);
 
     /**
     * @brief **bpf_object__prepare()** prepares BPF object for loading:
@@ -71,11 +71,11 @@ internal static class NativeMethods
     /**
     * @brief **bpf_object__name()** retrieves the name of the BPF object.
     * @param obj Pointer to a valid BPF object
-    * @return the object's name
+    * @return the object's name; the pointer is borrowed from libbpf's
+    * internal state and must never be freed by the caller
     */
     [DllImport("libbpf")]
-    [return: MarshalAs(UnmanagedType.LPUTF8Str)]
-    public static extern string bpf_object__name(BpfObjectHandle obj);
+    public static extern IntPtr bpf_object__name(BpfObjectHandle obj);
 
     /**
     * @brief **bpf_object__pin()** pins all programs and maps contained
@@ -195,11 +195,11 @@ internal static class NativeMethods
     /**
     * @brief **bpf_program__name()** retrieves the name of the BPF program.
     * @param prog BPF program
-    * @return the program's name
+    * @return the program's name; the pointer is borrowed from libbpf's
+    * internal state and must never be freed by the caller
     */
     [DllImport("libbpf")]
-    [return: MarshalAs(UnmanagedType.LPUTF8Str)]
-    public static extern string bpf_program__name(BpfProgramHandle prog);
+    public static extern IntPtr bpf_program__name(BpfProgramHandle prog);
 
     /**
     * @brief **bpf_program__type()** retrieves the BPF program type.
@@ -216,6 +216,7 @@ internal static class NativeMethods
     * @return true if the program is set to be auto-loaded
     */
     [DllImport("libbpf")]
+    [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool bpf_program__autoload(BpfProgramHandle prog);
 
     /**
@@ -293,11 +294,11 @@ internal static class NativeMethods
     /**
     * @brief **bpf_map__name()** retrieves the name of the BPF map.
     * @param map the BPF map instance
-    * @return the map's name
+    * @return the map's name; the pointer is borrowed from libbpf's
+    * internal state and must never be freed by the caller
     */
     [DllImport("libbpf")]
-    [return: MarshalAs(UnmanagedType.LPUTF8Str)]
-    public static extern string bpf_map__name(BpfMapHandle map);
+    public static extern IntPtr bpf_map__name(BpfMapHandle map);
 
     /**
     * @brief **bpf_map__type()** retrieves the BPF map type.
@@ -369,7 +370,7 @@ internal static class NativeMethods
     * @return 0, on success; negative error code, otherwise
     */
     [DllImport("libbpf")]
-    public static extern int bpf_map__lookup_elem(BpfMapHandle map, ReadOnlySpan<byte> key, nuint keySz, Span<byte> value, nuint valueSz, ulong flags);
+    public static extern unsafe int bpf_map__lookup_elem(BpfMapHandle map, byte* key, nuint keySz, byte* value, nuint valueSz, ulong flags);
 
     /**
     * @brief **bpf_map__update_elem()** inserts or updates the BPF map
@@ -385,7 +386,7 @@ internal static class NativeMethods
     * @return 0, on success; negative error code, otherwise
     */
     [DllImport("libbpf")]
-    public static extern int bpf_map__update_elem(BpfMapHandle map, ReadOnlySpan<byte> key, nuint keySz, ReadOnlySpan<byte> value, nuint valueSz, ulong flags);
+    public static extern unsafe int bpf_map__update_elem(BpfMapHandle map, byte* key, nuint keySz, byte* value, nuint valueSz, ulong flags);
 
     /**
     * @brief **bpf_map__delete_elem()** deletes the BPF map element that
@@ -397,21 +398,20 @@ internal static class NativeMethods
     * @return 0, on success; negative error code, otherwise
     */
     [DllImport("libbpf")]
-    public static extern int bpf_map__delete_elem(BpfMapHandle map, ReadOnlySpan<byte> key, nuint keySz, ulong flags);
+    public static extern unsafe int bpf_map__delete_elem(BpfMapHandle map, byte* key, nuint keySz, ulong flags);
 
     /**
     * @brief **bpf_map__get_next_key()** iterates BPF map keys by fetching
     * the key that follows the current one.
     * @param map BPF map to fetch the next key from
-    * @param curKey bytes of the current key, or an empty span to fetch the
-    * first key
+    * @param curKey bytes of the current key, or NULL to fetch the first key
     * @param nextKey buffer that receives the next key's bytes
     * @param keySz size in bytes of key data, must match the map's key_size
     * @return 0, on success; -ENOENT if curKey was the last key in the map;
     * negative error code, otherwise
     */
     [DllImport("libbpf")]
-    public static extern int bpf_map__get_next_key(BpfMapHandle map, ReadOnlySpan<byte> curKey, Span<byte> nextKey, nuint keySz);
+    public static extern unsafe int bpf_map__get_next_key(BpfMapHandle map, byte* curKey, byte* nextKey, nuint keySz);
 
     //TO DO => declare other functions (lookup_and_delete_elem, is_pinned, exclusive_program).
 

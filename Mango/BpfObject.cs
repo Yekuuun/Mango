@@ -14,7 +14,7 @@ public sealed class BpfObject : IDisposable
 
     private BpfObject(BpfObjectHandle handle) => _handle = handle;
 
-    public string Name => NativeMethods.bpf_object__name(_handle);
+    public string Name => NativeString.FromBorrowedPtr(NativeMethods.bpf_object__name(_handle));
 
     /// <summary>
     /// Iterates every program contained within the object, in libbpf's

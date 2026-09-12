@@ -14,7 +14,7 @@ public sealed class BpfMap
 
     internal BpfMap(BpfMapHandle handle) => _handle = handle;
 
-    public string Name => NativeMethods.bpf_map__name(_handle);
+    public string Name => NativeString.FromBorrowedPtr(NativeMethods.bpf_map__name(_handle));
 
     public int Fd => NativeMethods.bpf_map__fd(_handle);
 
@@ -39,7 +39,7 @@ public sealed class BpfMap
             while (true)
             {
                 var next = new byte[keySize];
-                if (NativeMethods.bpf_map__get_next_key(_handle, current, next, (nuint)keySize) != 0)
+                if (GetNextKey(current, next, (nuint)keySize) != 0)
                     yield break;
 
                 yield return next;
@@ -52,11 +52,36 @@ public sealed class BpfMap
 
     public BpfResult<BpfMap> Unpin(string? path = null) => Execute(NativeMethods.bpf_map__unpin(_handle, path));
 
-    public bool TryLookup(ReadOnlySpan<byte> key, Span<byte> value, ulong flags = 0) => NativeMethods.bpf_map__lookup_elem(_handle, key, (nuint)key.Length, value, (nuint)value.Length, flags) == 0;
+    public unsafe bool TryLookup(ReadOnlySpan<byte> key, Span<byte> value, ulong flags = 0)
+    {
+        fixed (byte* keyPtr = key)
+        fixed (byte* valuePtr = value)
+            return NativeMethods.bpf_map__lookup_elem(_handle, keyPtr, (nuint)key.Length, valuePtr, (nuint)value.Length, flags) == 0;
+    }
 
-    public bool TryUpdate(ReadOnlySpan<byte> key, ReadOnlySpan<byte> value, ulong flags = 0) => NativeMethods.bpf_map__update_elem(_handle, key, (nuint)key.Length, value, (nuint)value.Length, flags) == 0;
+    public unsafe bool TryUpdate(ReadOnlySpan<byte> key, ReadOnlySpan<byte> value, ulong flags = 0)
+    {
+        fixed (byte* keyPtr = key)
+        fixed (byte* valuePtr = value)
+            return NativeMethods.bpf_map__update_elem(_handle, keyPtr, (nuint)key.Length, valuePtr, (nuint)value.Length, flags) == 0;
+    }
 
-    public bool TryDelete(ReadOnlySpan<byte> key, ulong flags = 0) => NativeMethods.bpf_map__delete_elem(_handle, key, (nuint)key.Length, flags) == 0;
+    public unsafe bool TryDelete(ReadOnlySpan<byte> key, ulong flags = 0)
+    {
+        fixed (byte* keyPtr = key)
+            return NativeMethods.bpf_map__delete_elem(_handle, keyPtr, (nuint)key.Length, flags) == 0;
+    }
+
+    /// <summary>
+    /// Pins both buffers and forwards them to libbpf as raw pointers. A null
+    /// <paramref name="curKey"/> asks libbpf for the map's first key.
+    /// </summary>
+    private unsafe int GetNextKey(byte[]? curKey, byte[] nextKey, nuint keySz)
+    {
+        fixed (byte* curPtr = curKey)
+        fixed (byte* nextPtr = nextKey)
+            return NativeMethods.bpf_map__get_next_key(_handle, curPtr, nextPtr, keySz);
+    }
 
     private BpfResult<BpfMap> Execute(int returnCode)
     {
