@@ -48,17 +48,36 @@ public sealed class BpfRingBuffer : IDisposable
             return 0;
         }
 
-        var handle = NativeMethods.ring_buffer__new(map.Fd, NativeCallback, IntPtr.Zero, IntPtr.Zero);
+        // Materialized once, on purpose: every method group conversion of
+        // NativeCallback allocates a *separate* delegate object. Handing one
+        // to ring_buffer__new and storing another in the field would leave
+        // the marshaled function pointer rooted by nothing, and the first
+        // record consumed would then abort the process with "A callback was
+        // made on a garbage collected delegate".
+        var nativeCallback = new RingBufferSampleFn(NativeCallback);
+
+        var handle = NativeMethods.ring_buffer__new(map.Fd, nativeCallback, IntPtr.Zero, IntPtr.Zero);
         return handle.IsInvalid
             ? BpfResult<BpfRingBuffer>.Failure(BpfError.FromLastError())
-            : BpfResult<BpfRingBuffer>.Success(new BpfRingBuffer(handle, NativeCallback));
+            : BpfResult<BpfRingBuffer>.Success(new BpfRingBuffer(handle, nativeCallback));
     }
 
     /// <summary>
     /// Polls for new records, blocking up to <paramref name="timeoutMs"/>
     /// milliseconds. Returns the number of records consumed.
     /// </summary>
-    public int Poll(int timeoutMs) => NativeMethods.ring_buffer__poll(_handle, timeoutMs);
+    public int Poll(int timeoutMs)
+    {
+        int consumed = NativeMethods.ring_buffer__poll(_handle, timeoutMs);
+
+        // The JIT drops `this` as soon as _handle has been read, so without
+        // this the delegate is collectable for the whole blocking call — the
+        // exact window in which libbpf invokes it. The SafeHandle survives on
+        // its own (the marshaler add-refs it), the delegate does not.
+        GC.KeepAlive(_nativeCallback);
+
+        return consumed;
+    }
 
     public void Dispose() => _handle.Dispose();
 }
