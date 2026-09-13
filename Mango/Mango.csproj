@@ -18,11 +18,13 @@
     <PackageProjectUrl>https://github.com/Yekuuun/Mango</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Yekuuun/Mango</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <!-- NuGet.org renders READMEs with raw HTML disabled, so it ships a
+         Markdown-only twin of README.md rather than the GitHub one. -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../README.md" Pack="true" PackagePath="\" />
+    <None Include="../README.nuget.md" Pack="true" PackagePath="\README.md" />
   </ItemGroup>
 
 </Project>
