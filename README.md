@@ -78,13 +78,13 @@ Install-Package Mango.Libbpf
 ```csharp
 using Mango;
 
-using var obj = BpfObject.Open("probe.bpf.o").Value!;
+using var obj = BpfObject.Open("<filename>.o").Value!;
 obj.Load();
 
-var program = obj.FindProgram("kprobe_sys_kill")!;
+var program = obj.FindProgram("<prog_name>")!;
 using var link = program.Attach().Value!;
 
-var map = obj.FindMap("event_output")!;
+var map = obj.FindMap("<ring_buffer>")!;
 using var ringBuffer = BpfRingBuffer.Create(map, data =>
 {
     // data is a ReadOnlySpan<byte>, valid only for the duration of this call
@@ -116,13 +116,6 @@ Mango/
 └── BpfRingBuffer.cs              # Public API: wraps BpfRingBufferHandle (Create/Poll)
 ```
 
-Alongside the library:
-
-```
-Ebpf/         # Sample BPF probe (sys_kill kprobe) compiled to main.bpf.o via `make`
-Mango.Poc/    # Runnable console app that loads/attaches the sample probe and prints its events
-```
-
 Every native call funnels through `Interops/NativeBpfMethods.cs`'s `NativeMethods` — the only place `[DllImport]` declarations live — and errors are rendered through libbpf's own `libbpf_strerror()`.
 
 ---
@@ -133,7 +126,7 @@ Every native call funnels through `Interops/NativeBpfMethods.cs`'s `NativeMethod
 <summary><strong>BpfObject</strong> — open, load, pin, enumerate</summary>
 
 ```csharp
-using var obj = BpfObject.Open("probe.bpf.o").Value!;
+using var obj = BpfObject.Open("<filename>.o").Value!;
 ```
 
 | Member | libbpf call |
@@ -276,12 +269,6 @@ cd Mango
 
 # Build the library
 dotnet build Mango/Mango.csproj
-
-# Build + run the sample: loads Ebpf/out/main.bpf.o, attaches its sys_kill
-# kprobe, and prints every kill(pid, 64) it observes. Building auto-runs
-# `make` in Ebpf/ and copies main.bpf.o next to the app's own output.
-dotnet build Mango.Poc
-sudo dotnet Mango.Poc/bin/Debug/net10.0/Mango.Poc
 ```
 
 Packed and published to NuGet as `Mango.Libbpf` on pushing a `v*` tag (see [`.github/workflows/publish-nuget.yml`](.github/workflows/publish-nuget.yml)).
