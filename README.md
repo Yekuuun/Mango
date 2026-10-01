@@ -97,6 +97,10 @@ while (true)
 
 Every domain follows the same pattern: open/find the object you need, check the returned `BpfResult<T>.IsSuccess` (or unwrap `.Value!` once you trust the call), and dispose whatever owns a native handle (`BpfObject`, `BpfLink`, `BpfRingBuffer`) when you're done.
 
+### Real POC implementation ? 
+
+For a real & concrete example of Mango usage, consult [Hidan](https://github.com/Yekuuun/Hidan) project also written by my hand.
+
 ---
 
 ## Project structure
